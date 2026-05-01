@@ -19,15 +19,18 @@ const FONTS_DIR = path.join(__dirname, 'fonts');
 fs.mkdirSync(VIDEOS_DIR, { recursive: true });
 fs.mkdirSync(FONTS_DIR, { recursive: true });
 
-// Auto-install project fonts into ~/Library/Fonts/ so libass can find them
-const systemFontsDir = path.join(require('os').homedir(), 'Library', 'Fonts');
+// Auto-install project fonts — macOS uses ~/Library/Fonts, Linux uses ~/.local/share/fonts
+const systemFontsDir = process.platform === 'darwin'
+  ? path.join(require('os').homedir(), 'Library', 'Fonts')
+  : path.join(require('os').homedir(), '.local', 'share', 'fonts');
+fs.mkdirSync(systemFontsDir, { recursive: true });
 fs.readdirSync(FONTS_DIR)
   .filter(f => /\.(ttf|otf)$/i.test(f))
   .forEach(file => {
     const dest = path.join(systemFontsDir, file);
     if (!fs.existsSync(dest)) {
       fs.copyFileSync(path.join(FONTS_DIR, file), dest);
-      console.log(`Installed font: ${file} → ~/Library/Fonts/`);
+      console.log(`Installed font: ${file} → ${systemFontsDir}`);
     }
   });
 

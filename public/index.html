@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video Generator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Video Generator</h1>
+
+    <div class="field">
+      <textarea
+        id="script"
+        placeholder="Paste your script here..."
+        maxlength="3000"
+        spellcheck="true"
+      ></textarea>
+      <div class="char-count">
+        <span id="count">0</span> / 3000
+      </div>
+    </div>
+
+    <button id="generateBtn">Generate Video</button>
+
+    <div id="jobs"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

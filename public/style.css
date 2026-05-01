@@ -1,0 +1,207 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0f0f0f;
+  color: #e8e8e8;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 60px 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+h1 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+textarea {
+  width: 100%;
+  height: 220px;
+  background: #1a1a1a;
+  border: 1px solid #2e2e2e;
+  border-radius: 10px;
+  color: #e8e8e8;
+  font-size: 15px;
+  line-height: 1.6;
+  padding: 16px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: inherit;
+}
+
+textarea:focus {
+  border-color: #555;
+}
+
+textarea::placeholder {
+  color: #555;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 13px;
+  color: #555;
+}
+
+.char-count.warn { color: #e08c00; }
+.char-count.over { color: #e04040; }
+
+button#generateBtn {
+  background: #fff;
+  color: #0f0f0f;
+  border: none;
+  border-radius: 8px;
+  padding: 13px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  font-family: inherit;
+}
+
+button#generateBtn:hover { opacity: 0.88; }
+
+/* Jobs list */
+#jobs {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.job-card {
+  background: #1a1a1a;
+  border: 1px solid #2e2e2e;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.job-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.job-num {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  flex-shrink: 0;
+}
+
+.job-preview {
+  font-size: 13px;
+  color: #888;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Status */
+.job-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #aaa;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #aaa;
+  flex-shrink: 0;
+}
+
+.job-status.generating .dot {
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.job-status.done {
+  color: #4caf82;
+}
+
+.job-status.done .dot {
+  background: #4caf82;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+/* Result */
+.job-result {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+video {
+  width: 260px;
+  border-radius: 8px;
+  background: #111;
+  align-self: flex-start;
+}
+
+.job-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.download-btn,
+.regen-btn {
+  flex: 1;
+  display: inline-block;
+  background: transparent;
+  border: 1px solid #2e2e2e;
+  color: #e8e8e8;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  text-align: center;
+  transition: border-color 0.15s;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.download-btn:hover,
+.regen-btn:hover { border-color: #555; }
+
+/* Error */
+.job-error {
+  font-size: 13px;
+  color: #e04040;
+  line-height: 1.5;
+}
+
+.hidden { display: none !important; }

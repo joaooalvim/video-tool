@@ -1,0 +1,16 @@
+{
+  "name": "video-tool",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "bun server.js",
+    "dev": "bun --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.85.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "ffmpeg-static": "^5.3.0",
+    "form-data": "^4.0.0"
+  }
+}

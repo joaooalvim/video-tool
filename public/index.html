@@ -40,7 +40,21 @@
       <div id="jobs"></div>
     </div>
 
-    <div id="tab-posting" class="tab-panel hidden"></div>
+    <div id="tab-posting" class="tab-panel hidden">
+      <div class="posting-controls">
+        <select id="integrationSelect" class="integration-select">
+          <option value="">Loading accounts...</option>
+        </select>
+        <button id="sendDraftsBtn" class="send-drafts-btn" disabled>Send to Drafts</button>
+      </div>
+
+      <div id="dropzone" class="dropzone">
+        <span class="dropzone-label">Drop videos here or <label for="fileInput" class="file-pick">browse</label></span>
+        <input type="file" id="fileInput" accept="video/mp4,video/*" multiple hidden />
+      </div>
+
+      <div id="postingJobs" class="posting-jobs"></div>
+    </div>
   </div>
 
   <script src="app.js"></script>

@@ -474,6 +474,83 @@ function generateASS(words, width = 720, height = 1280) {
   return header + '\n' + dialogues.join('\n');
 }
 
+// ---------------------------------------------------------------------------
+// Postiz integration
+// ---------------------------------------------------------------------------
+const POSTIZ_BASE = 'https://api.postiz.com/public/v1';
+
+app.get('/api/postiz/integrations', async (req, res) => {
+  try {
+    const r = await fetch(`${POSTIZ_BASE}/integrations`, {
+      headers: { Authorization: process.env.POSTIZ_API_KEY },
+    });
+    const data = await r.json();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/postiz/upload', express.raw({ type: '*/*', limit: '500mb' }), async (req, res) => {
+  try {
+    const filename = req.headers['x-filename'] || 'video.mp4';
+    const mimeType = 'video/mp4';
+    const form = new FormData();
+    form.append('file', new Blob([req.body], { type: mimeType }), filename);
+    const r = await fetch(`${POSTIZ_BASE}/upload`, {
+      method: 'POST',
+      headers: { Authorization: process.env.POSTIZ_API_KEY },
+      body: form,
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data?.message || `Postiz upload error (${r.status})`);
+    res.json(data);
+  } catch (err) {
+    console.error('[POSTIZ UPLOAD]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/postiz/draft', async (req, res) => {
+  const { integrationId, integrationType, posts } = req.body;
+  // posts: [{ uploadId, uploadPath, caption }]
+  try {
+    const results = [];
+    for (const post of posts) {
+      const r = await fetch(`${POSTIZ_BASE}/posts`, {
+        method: 'POST',
+        headers: { Authorization: process.env.POSTIZ_API_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'draft',
+          date: new Date().toISOString(),
+          shortLink: false,
+          tags: [],
+          posts: [{
+            integration: { id: integrationId },
+            value: [{
+              content: post.caption || '',
+              image: [{ id: post.uploadId, path: post.uploadPath }],
+            }],
+            settings: {
+              __type: integrationType || 'instagram',
+              post_type: 'post',
+              is_trial_reel: false,
+              collaborators: [],
+            },
+          }],
+        }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data?.message || `Postiz post error (${r.status})`);
+      results.push(data);
+    }
+    res.json({ results });
+  } catch (err) {
+    console.error('[POSTIZ DRAFT]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`\nVideo tool running at http://localhost:${PORT}\n`);
 });

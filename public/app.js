@@ -169,6 +169,162 @@ function pollStatus(videoId, setStatus, onError, onComplete) {
   }, POLL_INTERVAL_MS);
 }
 
+// ---------------------------------------------------------------------------
+// Posting tab
+// ---------------------------------------------------------------------------
+
+const integrationSelect = document.getElementById('integrationSelect');
+const sendDraftsBtn = document.getElementById('sendDraftsBtn');
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const postingJobsEl = document.getElementById('postingJobs');
+
+const MAX_VIDEOS = 10;
+let postingCards = []; // { file, captionEl, statusEl, uploadId, uploadPath }
+
+// Load integrations on page load
+(async () => {
+  try {
+    const res = await fetch('/api/postiz/integrations');
+    const data = await res.json();
+    const accounts = Array.isArray(data) ? data : (data.integrations || data.items || []);
+    const ig = accounts.filter(a => a.type?.toLowerCase().includes('instagram') || a.identifier?.toLowerCase().includes('instagram') || a.name?.toLowerCase().includes('instagram'));
+    const list = ig.length ? ig : accounts;
+    integrationSelect.innerHTML = list.length
+      ? list.map(a => `<option value="${a.id}" data-type="${a.type || 'instagram'}">${a.name || a.identifier || a.id}</option>`).join('')
+      : '<option value="">No accounts found</option>';
+    if (list.length) integrationSelect.disabled = false;
+  } catch (e) {
+    integrationSelect.innerHTML = '<option value="">Failed to load accounts</option>';
+  }
+})();
+
+// Drag and drop
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag-over');
+  addFiles([...e.dataTransfer.files]);
+});
+fileInput.addEventListener('change', () => {
+  addFiles([...fileInput.files]);
+  fileInput.value = '';
+});
+
+function addFiles(files) {
+  const videoFiles = files.filter(f => f.type.startsWith('video/'));
+  const slots = MAX_VIDEOS - postingCards.length;
+  videoFiles.slice(0, slots).forEach(addPostingCard);
+  updateSendBtn();
+}
+
+function addPostingCard(file) {
+  const card = document.createElement('div');
+  card.className = 'posting-card';
+  card.innerHTML = `
+    <video muted playsinline></video>
+    <div class="posting-card-body">
+      <div class="posting-card-name">${escapeHtml(file.name)}</div>
+      <textarea class="posting-caption" placeholder="Caption (optional)..."></textarea>
+      <div class="posting-card-footer">
+        <span class="posting-card-status">Ready</span>
+        <button class="remove-card-btn" title="Remove">&times;</button>
+      </div>
+    </div>
+  `;
+
+  const videoEl = card.querySelector('video');
+  videoEl.src = URL.createObjectURL(file);
+
+  const captionEl = card.querySelector('.posting-caption');
+  const statusEl = card.querySelector('.posting-card-status');
+  const removeBtn = card.querySelector('.remove-card-btn');
+
+  const entry = { file, captionEl, statusEl, card, uploadId: null, uploadPath: null };
+  postingCards.push(entry);
+  postingJobsEl.appendChild(card);
+
+  removeBtn.addEventListener('click', () => {
+    URL.revokeObjectURL(videoEl.src);
+    card.remove();
+    postingCards = postingCards.filter(e => e !== entry);
+    updateSendBtn();
+  });
+}
+
+function updateSendBtn() {
+  sendDraftsBtn.disabled = postingCards.length === 0 || !integrationSelect.value;
+}
+
+integrationSelect.addEventListener('change', updateSendBtn);
+
+sendDraftsBtn.addEventListener('click', async () => {
+  const integrationId = integrationSelect.value;
+  const integrationType = integrationSelect.selectedOptions[0]?.dataset.type || 'instagram';
+  if (!integrationId || postingCards.length === 0) return;
+
+  sendDraftsBtn.disabled = true;
+
+  // Step 1: Upload all videos
+  const uploaded = [];
+  for (const entry of postingCards) {
+    entry.statusEl.textContent = 'Uploading...';
+    entry.statusEl.className = 'posting-card-status uploading';
+    try {
+      const res = await fetch('/api/postiz/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'video/mp4',
+          'x-filename': entry.file.name,
+        },
+        body: entry.file,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      entry.uploadId = data.id;
+      entry.uploadPath = data.path;
+      entry.statusEl.textContent = 'Uploaded';
+      uploaded.push(entry);
+    } catch (err) {
+      entry.statusEl.textContent = err.message;
+      entry.statusEl.className = 'posting-card-status error';
+    }
+  }
+
+  // Step 2: Create drafts
+  if (uploaded.length > 0) {
+    try {
+      const res = await fetch('/api/postiz/draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          integrationId,
+          integrationType,
+          posts: uploaded.map(e => ({
+            uploadId: e.uploadId,
+            uploadPath: e.uploadPath,
+            caption: e.captionEl.value.trim(),
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Draft creation failed');
+      uploaded.forEach(e => {
+        e.statusEl.textContent = 'Draft created';
+        e.statusEl.className = 'posting-card-status done';
+      });
+    } catch (err) {
+      uploaded.forEach(e => {
+        e.statusEl.textContent = err.message;
+        e.statusEl.className = 'posting-card-status error';
+      });
+    }
+  }
+
+  sendDraftsBtn.disabled = false;
+});
+
 function escapeHtml(str) {
   return str
     .replace(/&/g, '&amp;')

@@ -54,7 +54,7 @@ const videoTimestamps = new Map();
 // 3. Kick off HeyGen video generation → video_id
 // ---------------------------------------------------------------------------
 app.post('/api/generate', async (req, res) => {
-  const { script } = req.body;
+  const { script, avatarIV } = req.body;
 
   if (!script || typeof script !== 'string') {
     return res.status(400).json({ error: 'Script is required.' });
@@ -120,9 +120,9 @@ app.post('/api/generate', async (req, res) => {
 
     // --- Step 3: Generate video ---
     const lookId = nextLookId();
-    console.log(`[4/4] Starting HeyGen video generation... (look: ${lookId ?? 'default'})`);
+    console.log(`[4/4] Starting HeyGen video generation... (look: ${lookId ?? 'default'}, avatarIV: ${!!avatarIV})`);
     const character = lookId
-      ? { type: 'talking_photo', talking_photo_id: lookId, use_avatar_iv_model: true }
+      ? { type: 'talking_photo', talking_photo_id: lookId, ...(avatarIV && { use_avatar_iv_model: true }) }
       : { type: 'avatar', avatar_id: process.env.HEYGEN_AVATAR_ID, avatar_style: 'normal' };
     const videoRes = await fetch('https://api.heygen.com/v2/video/generate', {
       method: 'POST',

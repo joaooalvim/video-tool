@@ -3,28 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Video Generator</title>
+  <title>Video Tool</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <h1>Video Generator</h1>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="create">Create</button>
+      <button class="tab-btn" data-tab="posting">Posting</button>
+    </nav>
 
-    <div class="field">
-      <textarea
-        id="script"
-        placeholder="Paste your script here..."
-        maxlength="3000"
-        spellcheck="true"
-      ></textarea>
-      <div class="char-count">
-        <span id="count">0</span> / 3000
+    <div id="tab-create" class="tab-panel">
+      <div class="field">
+        <textarea
+          id="script"
+          placeholder="Paste your script here..."
+          maxlength="3000"
+          spellcheck="true"
+        ></textarea>
+        <div class="char-count">
+          <span id="count">0</span> / 3000
+        </div>
       </div>
+
+      <div class="avatar-toggle">
+        <span class="toggle-label">Avatar III</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="avatarIV" />
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="toggle-label">Avatar IV</span>
+      </div>
+
+      <button id="generateBtn">Generate Video</button>
+
+      <div id="jobs"></div>
     </div>
 
-    <button id="generateBtn">Generate Video</button>
-
-    <div id="jobs"></div>
+    <div id="tab-posting" class="tab-panel hidden"></div>
   </div>
 
   <script src="app.js"></script>

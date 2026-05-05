@@ -1,7 +1,18 @@
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+    btn.classList.add('active');
+    document.getElementById(`tab-${btn.dataset.tab}`).classList.remove('hidden');
+  });
+});
+
 const scriptEl = document.getElementById('script');
 const countEl = document.getElementById('count');
 const charCountEl = document.querySelector('.char-count');
 const generateBtn = document.getElementById('generateBtn');
+const avatarIVToggle = document.getElementById('avatarIV');
 const jobsEl = document.getElementById('jobs');
 
 const POLL_INTERVAL_MS = 10_000;
@@ -20,14 +31,16 @@ generateBtn.addEventListener('click', () => {
   const script = scriptEl.value.trim();
   if (!script || script.length > 3000) return;
 
+  const useAvatarIV = avatarIVToggle.checked;
+
   scriptEl.value = '';
   countEl.textContent = '0';
   charCountEl.className = 'char-count';
 
-  startJob(script);
+  startJob(script, useAvatarIV);
 });
 
-function startJob(script) {
+function startJob(script, useAvatarIV = false) {
   const id = ++jobCounter;
   const preview = script.length > 80 ? script.slice(0, 80) + '…' : script;
 
@@ -117,7 +130,7 @@ function startJob(script) {
   fetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ script }),
+    body: JSON.stringify({ script, avatarIV: useAvatarIV }),
   })
     .then(res => res.json().then(data => ({ ok: res.ok, data })))
     .then(({ ok, data }) => {
